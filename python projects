@@ -5,7 +5,7 @@ import os
 torch_path = os.path.dirname(torch.__file__)
 print(torch_path)
 print(torch.version.cuda)
-torch.cuda.is_available()
+print(torch.cuda.is_available())
 x = torch.rand(5, 3)
 print(x)
 data = [[1, 2],[3, 4]]
@@ -22,10 +22,12 @@ zeros_tensor = torch.zeros(shape)
 ##print(f"Random Tensor: \n {rand_tensor} \n")
 """                  print(f"Ones Tensor: \n {ones_tensor} \n")
 print(f"Zeros Tensor: \n {zeros_tensor}")                """
+
+tensor = torch.ones(4, 4)
 if torch.cuda.is_available():
   tensor = tensor.to('cuda')
   print(f"cuda is enabled")
-tensor = torch.ones(4, 4)
+
 print('First row: ',tensor[0])
 print('First column: ', tensor[:, 0])
 print('Last column:', tensor[..., -1])
