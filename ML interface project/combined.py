@@ -139,8 +139,10 @@ def on_press(key):
             if btn_vars[0].get():  # If 'Select regions' mode is active
                 if drag_coords[0] is None:  # If initial corner is not yet marked
                     drag_coords[0] = mouse_controller.position
+                    print(f'Set drag_coords[0] 142= {drag_coords[0]}')
                 else:  # If initial corner is already marked
                     drag_coords[1] = mouse_controller.position
+                    print(f'Set drag_coords[0] 144= {drag_coords[1]}')
                     # Call the code that handles the completion of rectangle drawing
                     select_regions_complete()
                     drag_coords[0] = None  # Reset the initial corner
@@ -156,36 +158,41 @@ def select_regions():
         for b in buttons:
             if b != buttons[0]:  # Skip 'Select regions' button
                 b.configure(state='disabled')
-
-def select_regions_complete():
-    global areasofinterest, dragging
-    if dragging[0]:  # If currently dragging
-        dragging[0] = False  # Complete selection
-        drag_coords[1] = mouse_controller.position
-        left = min(drag_coords[0][0], drag_coords[1][0])
-        top = min(drag_coords[0][1], drag_coords[1][1])
-        width = abs(drag_coords[0][0] - drag_coords[1][0])
-        height = abs(drag_coords[0][1] - drag_coords[1][1])
-
-        # Enable other buttons
+               # Enable other buttons
+    else:  
+        dragging[0]=False
         for b in buttons:
             if b != buttons[0]:  # Skip 'Select regions' button
                 b.configure(state='normal')
 
-        # Ensure the region is within screen bounds
-        left = max(0, left)
-        top = max(0, top)
-        right = min(pyautogui.size()[0], left + width)
-        bottom = min(pyautogui.size()[1], top + height)
-        width = right - left
-        height = bottom - top
+def select_regions_complete():
+    global areasofinterest, dragging
+    # If currently dragging
+   # dragging[0] = False  # Complete selection
+    drag_coords[1] = mouse_controller.position
+    left = min(drag_coords[0][0], drag_coords[1][0])
+    top = min(drag_coords[0][1], drag_coords[1][1])
+    width = abs(drag_coords[0][0] - drag_coords[1][0])
+    height = abs(drag_coords[0][1] - drag_coords[1][1])
 
-        if width > 0 and height > 0:  # Ignore zero-sized region
-            if len(areasofinterest) < 100:  # Limit to 100 rectangles
-                areasofinterest.append([left, top, width, height, str(len(areasofinterest))])  # Add index as label
 
-        # Reset the drag coordinates after completing a rectangle
-        drag_coords[0], drag_coords[1] = None, None
+
+ 
+
+    # Ensure the region is within screen bounds
+    left = max(0, left)
+    top = max(0, top)
+    right = min(pyautogui.size()[0], left + width)
+    bottom = min(pyautogui.size()[1], top + height)
+    width = right - left
+    height = bottom - top
+
+    if width > 0 and height > 0:  # Ignore zero-sized region
+        if len(areasofinterest) < 100:  # Limit to 100 rectangles
+            areasofinterest.append([left, top, width, height, str(len(areasofinterest))])  # Add index as label
+
+    # Reset the drag coordinates after completing a rectangle
+    drag_coords[0], drag_coords[1] = None, None
 
 
 def take_pictures_of_regions():
