@@ -1,19 +1,9 @@
-import pyautogui
-import tkinter as tk
+import pyautogui, tkinter as tk, tkinter.messagebox, tkinter.filedialog, os, json, threading, time, cv2, numpy as np
 from tkinter import ttk
-
-from tkinter import filedialog
-import tkinter.messagebox
-import tkinter.scrolledtext as st
-from PIL import Image, ImageTk, ImageDraw
-from PIL import ImageFont
+from tkinter.scrolledtext import ScrolledText as st
+from PIL import Image, ImageTk, ImageDraw, ImageFont
 from pynput import mouse, keyboard
-import os
-import json
-import threading
-import time
-import cv2
-import numpy as np
+from tkinter import filedialog
 
 DISPLAY_WINDOW = [True]
 root = tk.Tk()
@@ -33,13 +23,36 @@ drag_coords = [None, None]
 buttons = []
 mouse_controller = mouse.Controller()
 current_mouse_position = [None]
-
+global photo_img, photo_path
+should_continue_pictures = True
+autopicture=False #Set this to true if you want to keep taking pictures every picturetimer length
+picturetimer=2.0 #take pictures every 2 seconds
 def apply_filter(img):
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     lower_bound = np.array(hsv_values['lower'], dtype=np.uint8)
     upper_bound = np.array(hsv_values['upper'], dtype=np.uint8)
     mask = cv2.inRange(hsv_img, lower_bound, upper_bound)
     return cv2.bitwise_and(img, img, mask=mask)
+
+def save_filter():
+    
+    if 'photo_img' in globals():
+        filename = filedialog.asksaveasfilename(defaultextension=".txt", initialdir=os.path.dirname(photo_path))
+        if filename:
+            with open(filename, 'w') as file:
+                json.dump(hsv_values, file)
+
+def load_filter():
+ 
+    if 'photo_img' in globals():
+        filename = filedialog.askopenfilename(initialdir=os.path.dirname(photo_path))
+        if filename:
+            with open(filename, 'r') as file:
+                loaded_hsv_values = json.load(file)
+                for bound in ['lower', 'upper']:
+                    for i in range(3):
+                        hsv_values[bound][i] = loaded_hsv_values[bound][i]
+
 
 # Load areas of interest from file
 try:
@@ -111,6 +124,7 @@ def open_command_window():
 
 def exit_application():
     # Here you can handle anything you want to do before closing the application
+    stop_periodic_take_pictures()
     root.quit()
     root.destroy()  # This is required for the application to close when the X button is clicked
 
@@ -121,7 +135,6 @@ root.protocol("WM_DELETE_WINDOW", exit_application)
 def toggle_display_window():
     DISPLAY_WINDOW[0] = not DISPLAY_WINDOW[0]
 def load_areas_of_interest():
-    global areasofinterest
     filename = filedialog.askopenfilename()
     if filename:
         try:
@@ -131,7 +144,6 @@ def load_areas_of_interest():
             tk.messagebox.showerror("Invalid file", "The selected file does not contain valid JSON data.")
         except Exception as e:
             tk.messagebox.showerror("Error", f"An error occurred: {str(e)}")
-
 
 def on_press(key):
     if key == keyboard.Key.f8:  # Use F8 key for marking corners of rectangles
@@ -151,7 +163,6 @@ keyboard_listener = keyboard.Listener(on_press=on_press)
 keyboard_listener.start()
 
 def select_regions():
-    global dragging
     if not dragging[0]:  # If not currently dragging
         dragging[0] = True  # Begin selection
         # Disable other buttons
@@ -166,18 +177,12 @@ def select_regions():
                 b.configure(state='normal')
 
 def select_regions_complete():
-    global areasofinterest, dragging
     # If currently dragging
-   # dragging[0] = False  # Complete selection
     drag_coords[1] = mouse_controller.position
     left = min(drag_coords[0][0], drag_coords[1][0])
     top = min(drag_coords[0][1], drag_coords[1][1])
     width = abs(drag_coords[0][0] - drag_coords[1][0])
     height = abs(drag_coords[0][1] - drag_coords[1][1])
-
-
-
- 
 
     # Ensure the region is within screen bounds
     left = max(0, left)
@@ -203,8 +208,39 @@ def take_pictures_of_regions():
         screenshot.save(os.path.join(str(index), f'image_{img_count[0]}_{index}.png'))
     img_count[0] += 1
 
+def take_pictures_of_selected_regions():
+    global areasofinterest, img_count
+    
+    # Read autophoto.txt to get the indices
+    with open('autophoto.txt', 'r') as file:
+        indices = file.read().split(',')
+    indices = [int(index) for index in indices]  # Convert indices to integers
+    
+    for index in indices:
+        # Ensure index is within range of areasofinterest
+        if index < len(areasofinterest):
+            (left, top, width, height, _) = areasofinterest[index]
+            screenshot = pyautogui.screenshot(region=(left, top, width, height))
+            
+            # Create directory if it doesn't exist
+            os.makedirs(str(index), exist_ok=True)
+            
+            # Save the screenshot
+            screenshot.save(os.path.join(str(index), f'image_{img_count[0]}_{index}.png'))
+
+    img_count[0] += 1
+
+def periodic_take_pictures():
+    global should_continue_pictures
+    if should_continue_pictures:
+        take_pictures_of_selected_regions()
+        threading.Timer(picturetimer, periodic_take_pictures).start()
+
+def stop_periodic_take_pictures():
+    global should_continue_pictures
+    should_continue_pictures = False
+
 def clear_selections():
-    global areasofinterest
     areasofinterest = []
 
 def update_image():
@@ -260,7 +296,7 @@ def apply_filter(cv_img):
 def select_file():
     filename = filedialog.askopenfilename()
     if filename:
-        global photo_img
+        photo_path = filename
         photo_img = cv2.imread(filename)
         filtered_img = apply_filter(photo_img)
         update_img_display(filtered_img)
@@ -302,6 +338,15 @@ def open_filter_window():
     file_button = tk.Button(filter_window, text='Select file', command=select_file)
     file_button.grid(column=1, row=1)
     
+    # Button to save filter
+    save_filter_button = tk.Button(filter_window, text='Save Filter', command=save_filter)
+    save_filter_button.grid(column=2, row=1)
+
+    # Button to load filter
+    load_filter_button = tk.Button(filter_window, text='Load Filter', command=load_filter)
+    load_filter_button.grid(column=3, row=1)
+
+
     # Display the image
     global img_label
     img_label = tk.Label(filter_window)
@@ -328,6 +373,8 @@ btn_commands = [select_regions, save_areas_of_interest, load_areas_of_interest,
 
 btn_vars = [tk.BooleanVar() for _ in btn_text]  # Variable for each button
 
+
+
 for i, (text, command, var) in enumerate(zip(btn_text, btn_commands, btn_vars)):
     if i == 0:  # Check button for 'Select regions' button
         btn = tk.Checkbutton(toolbar, text=text, variable=var, command=command)
@@ -340,4 +387,7 @@ label = tk.Label(root)
 label.pack()
 
 update_image()
+# Code to start the periodic picture taking
+should_continue_pictures = autopicture
+periodic_take_pictures()
 root.mainloop()
