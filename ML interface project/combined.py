@@ -35,7 +35,8 @@ def apply_filter(img):
     return cv2.bitwise_and(img, img, mask=mask)
 
 def save_filter():
-    
+    global filename
+    global photo_path
     if 'photo_img' in globals():
         filename = filedialog.asksaveasfilename(defaultextension=".txt", initialdir=os.path.dirname(photo_path))
         if filename:
@@ -43,7 +44,8 @@ def save_filter():
                 json.dump(hsv_values, file)
 
 def load_filter():
- 
+    global filename
+    global photo_path
     if 'photo_img' in globals():
         filename = filedialog.askopenfilename(initialdir=os.path.dirname(photo_path))
         if filename:
@@ -284,6 +286,7 @@ def update_img_display(cv_img):
     tk_img = ImageTk.PhotoImage(pil_img)
     img_label.config(image=tk_img)
     img_label.image = tk_img
+    
 
 def apply_filter(cv_img):
     lower_bound = np.array(hsv_values['lower'], dtype=np.uint8)
@@ -303,9 +306,10 @@ def select_file():
 
 def update_values(lower_upper, h_s_v, value):
     hsv_values[lower_upper][h_s_v] = value
-    if 'photo_img' in globals():
-        filtered_img = apply_filter(photo_img)
-        update_img_display(filtered_img)
+    print(hsv_values)  # Just for debugging
+
+    filtered_img = apply_filter(photo_img)
+    update_img_display(filtered_img)
 
 
 def display_photostream():
@@ -331,7 +335,13 @@ def open_filter_window():
             label = tk.Label(sliders_frame, text=f'{bound} {channel}')
             label.grid(row=3*i, column=j)
             
-            slider = tk.Scale(sliders_frame, from_=0, to=255, orient='horizontal', command=lambda v, bound=bound, channel=j: update_values(bound, channel, int(v)))
+            # define the command function
+            def slider_command(value, bound=bound, channel=j):
+                update_values(bound, channel, int(value))
+
+
+            slider = tk.Scale(sliders_frame, from_=0, to=255, orient='horizontal', command=slider_command)
+            slider.set(hsv_values[bound][j])
             slider.grid(row=3*i+1, column=j)
     
     # Button to select a file
@@ -351,6 +361,7 @@ def open_filter_window():
     global img_label
     img_label = tk.Label(filter_window)
     img_label.grid(column=0, row=0)
+
 
 # Create toolbar frame
 toolbar = tk.Frame(root, bd=1, relief=tk.RAISED)
