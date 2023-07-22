@@ -9,11 +9,10 @@ photo_img=None
 photo_path=None
 foo=0
 if(foo==0):
- 
-    photo_img = cv2.imread('test.png')
-    print(foo)
+     photo_img = cv2.imread('test.png')
+  #  print(foo)
     foo=1
-    print(foo)
+  #  print(foo)
 DISPLAY_WINDOW = [True]
 root = tk.Tk()
 label = tk.Label(root)
@@ -69,8 +68,8 @@ def load_filter():
                 for bound in ['lower', 'upper']:
                     for i in range(3):
                         hsv_values[bound][i] = loaded_hsv_values[bound][i]
-            print(hsv_values)
-            if (photo_img is not None):
+          #  print(hsv_values)
+            if (photo_img is not None): #added to ensure that when new filter is added to a photo, it immediately applies, rather than waiting for a new photo
                 filtered_img = apply_filter(photo_img)
                 update_img_display(filtered_img)
             
@@ -333,7 +332,7 @@ def update_values(lower_upper, h_s_v, value):
     global hsv_values
     global filtered_img
     hsv_values[lower_upper][h_s_v] = value
-    print(hsv_values)  # Just for debugging
+   # print(hsv_values)  # Just for debugging
     filtered_img = apply_filter(photo_img)
     update_img_display(filtered_img)
 
@@ -364,7 +363,7 @@ def open_filter_window():
             # define the command function
             def slider_command(value, bound=bound, channel=j):
                 update_values(bound, channel, int(value))
-                print(value)
+              #  print(value)
 
 
             slider = tk.Scale(sliders_frame, from_=0, to=255, orient='horizontal', command=slider_command)
