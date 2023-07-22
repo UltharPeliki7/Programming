@@ -5,6 +5,15 @@ from PIL import Image, ImageTk, ImageDraw, ImageFont
 from pynput import mouse, keyboard
 from tkinter import filedialog
 
+photo_img=None
+photo_path=None
+foo=0
+if(foo==0):
+ 
+    photo_img = cv2.imread('test.png')
+    print(foo)
+    foo=1
+    print(foo)
 DISPLAY_WINDOW = [True]
 root = tk.Tk()
 label = tk.Label(root)
@@ -23,10 +32,13 @@ drag_coords = [None, None]
 buttons = []
 mouse_controller = mouse.Controller()
 current_mouse_position = [None]
-global photo_img, photo_path
+
 should_continue_pictures = True
 autopicture=False #Set this to true if you want to keep taking pictures every picturetimer length
 picturetimer=2.0 #take pictures every 2 seconds
+
+
+
 def apply_filter(img):
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     lower_bound = np.array(hsv_values['lower'], dtype=np.uint8)
@@ -46,6 +58,9 @@ def save_filter():
 def load_filter():
     global filename
     global photo_path
+    global hsv_values
+    global photo_img
+    global filtered_img
     if 'photo_img' in globals():
         filename = filedialog.askopenfilename(initialdir=os.path.dirname(photo_path))
         if filename:
@@ -54,6 +69,11 @@ def load_filter():
                 for bound in ['lower', 'upper']:
                     for i in range(3):
                         hsv_values[bound][i] = loaded_hsv_values[bound][i]
+            print(hsv_values)
+            if (photo_img is not None):
+                filtered_img = apply_filter(photo_img)
+                update_img_display(filtered_img)
+            
 
 
 # Load areas of interest from file
@@ -281,6 +301,7 @@ toolbar = tk.Frame(root, bd=1, relief=tk.RAISED)
 toolbar.pack(side=tk.TOP, fill=tk.X)
 
 def update_img_display(cv_img):
+    global pil_img, tk_img
     cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(cv_img)
     tk_img = ImageTk.PhotoImage(pil_img)
@@ -297,6 +318,9 @@ def apply_filter(cv_img):
     return result
 
 def select_file():
+    global photo_img, filtered_img
+    global filename
+    global photo_path
     filename = filedialog.askopenfilename()
     if filename:
         photo_path = filename
@@ -305,9 +329,11 @@ def select_file():
         update_img_display(filtered_img)
 
 def update_values(lower_upper, h_s_v, value):
+    global photo_img
+    global hsv_values
+    global filtered_img
     hsv_values[lower_upper][h_s_v] = value
     print(hsv_values)  # Just for debugging
-
     filtered_img = apply_filter(photo_img)
     update_img_display(filtered_img)
 
@@ -319,7 +345,7 @@ def display_photostream():
 def open_filter_window():
     global photo_img
     global hsv_values
-    hsv_values = {'lower': [0, 0, 0], 'upper': [255, 255, 255]}
+    hsv_values = {'lower': [0, 0, 0], 'upper': [180, 255, 255]} #Hue is max 180, others are 255
     
     # Initialize the filter window
     filter_window = tk.Toplevel(root)
@@ -338,6 +364,7 @@ def open_filter_window():
             # define the command function
             def slider_command(value, bound=bound, channel=j):
                 update_values(bound, channel, int(value))
+                print(value)
 
 
             slider = tk.Scale(sliders_frame, from_=0, to=255, orient='horizontal', command=slider_command)
@@ -355,7 +382,7 @@ def open_filter_window():
     # Button to load filter
     load_filter_button = tk.Button(filter_window, text='Load Filter', command=load_filter)
     load_filter_button.grid(column=3, row=1)
-
+ 
 
     # Display the image
     global img_label
