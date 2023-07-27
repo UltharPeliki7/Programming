@@ -27,8 +27,10 @@ Features
 
 Active bugs: 
 Solved bugs: when in the Filter window screen, the image will not dynamically update as the sliders move around. The filter will only be applied to the image after selecting a new file.
+
 ![](./img/prefilterex.PNG)
 
 
 Useful commands learned: git diff HEAD~5 HEAD (5 is 5 git revisions ago)
+
 git all "Message goes here!"
