@@ -12,7 +12,7 @@ Figure out a name for the program
 OCR on images
     We have simpleocrex.py, we are looking to incorporate this into something like ocrreader.py
 
-![](.img/ocrreader.PNG)
+![](.img/ocrreaderex.PNG)
 
 Do image-to-image comparison (maybe implement the following, we have an example on how to do this in imagecompare.py)
     Methodology: We check if left-text-box says Walk Here. If it does, do not save image. If it is empty, do not save image. if similarity is >95, we can be fairly certain that the image contains the main string we are looking for (EG: "Walk Here" vs "Walk Here /6 more options" returns above 95% similar)
