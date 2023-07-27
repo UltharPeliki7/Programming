@@ -9,7 +9,7 @@ photo_img=None
 photo_path=None
 foo=0
 if(foo==0):
-     photo_img = cv2.imread('test.png')
+    photo_img = cv2.imread('test.png')
   #  print(foo)
     foo=1
   #  print(foo)
@@ -33,8 +33,8 @@ mouse_controller = mouse.Controller()
 current_mouse_position = [None]
 
 should_continue_pictures = True
-autopicture=False #Set this to true if you want to keep taking pictures every picturetimer length
-picturetimer=2.0 #take pictures every 2 seconds
+autopicture=True #Set this to true if you want to keep taking pictures every picturetimer length
+picturetimer=1.0 #take pictures every number seconds
 
 
 
