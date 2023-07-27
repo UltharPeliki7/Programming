@@ -4,6 +4,7 @@ MLIP is a generalized automation tool that either the user, or the program itsel
 ![](./img/UIpicture.PNG)
 
 Completed: 
+
 cross-platform interface that can grab the screen, allow the user to define regions of interest, store pictures of these for later training, create filters on those pictures to allow either OCR(to be implemented) or a comparison algorithm(to be chosen and implemented) using opencv to begin a basis for logic.
 
 
@@ -12,9 +13,10 @@ Figure out a name for the program
 OCR on images
     We have simpleocrex.py, we are looking to incorporate this into something like ocrreader.py
 
-![](.img/ocrreaderex.PNG)
+![](./img/ocrreaderex.PNG)
 
 Do image-to-image comparison (maybe implement the following, we have an example on how to do this in imagecompare.py)
+
     Methodology: We check if left-text-box says Walk Here. If it does, do not save image. If it is empty, do not save image. if similarity is >95, we can be fairly certain that the image contains the main string we are looking for (EG: "Walk Here" vs "Walk Here /6 more options" returns above 95% similar)
 
 
@@ -22,6 +24,7 @@ Do image-to-image comparison (maybe implement the following, we have an example 
 
 
 What is the program, what problem does it solve, how does it solve it.
+
 Features
 
 
